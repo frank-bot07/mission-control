@@ -1011,13 +1011,20 @@
         // VELOCITY CHART
         // =============================================================================
 
+        let velocityChartInstance = null;
+        
         async function loadVelocityChart() {
             try {
                 const response = await fetch(`${API_BASE}/velocity`);
                 const data = await response.json();
                 
+                // Destroy existing chart to avoid canvas reuse error
+                if (velocityChartInstance) {
+                    velocityChartInstance.destroy();
+                }
+                
                 const ctx = document.getElementById('velocityChart').getContext('2d');
-                new Chart(ctx, {
+                velocityChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: data.map(d => d.week),
