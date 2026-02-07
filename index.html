@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Control v4.1</title>
+    <title>Mission Control v4.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-primary: #0a0a0f;
@@ -20,8 +21,9 @@
             --accent-red: #ef4444;
             --accent-blue: #3b82f6;
             --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
             --glow-green: rgba(16, 185, 129, 0.3);
-            --glow-red: rgba(239, 68, 68, 0.3);
+            --glow-blue: rgba(59, 130, 246, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,49 +36,44 @@
             line-height: 1.5;
         }
 
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
 
         /* Header */
         .header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
             border-bottom: 1px solid var(--border);
         }
 
-        .header h1 {
-            font-size: 2.5rem;
+        .header-left h1 {
+            font-size: 2rem;
             font-weight: 800;
             background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
         }
 
-        .header-meta { color: var(--text-muted); font-size: 0.875rem; }
-
-        .version-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
+        .header-badges {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
         }
 
-        .live-badge {
+        .badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent-green);
+            gap: 0.35rem;
             padding: 0.25rem 0.75rem;
             border-radius: 1rem;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            margin-left: 0.5rem;
         }
+
+        .badge-version { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); }
+        .badge-live { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
 
         .live-dot {
             width: 6px; height: 6px;
@@ -90,65 +87,277 @@
             50% { opacity: 0.5; transform: scale(0.8); }
         }
 
-        /* Command Center Grid */
+        /* Weather Widget */
+        .weather-widget {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15));
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .weather-temp {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .weather-condition { color: var(--text-secondary); font-size: 0.875rem; }
+        .weather-details { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.5rem; }
+        .weather-location { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 350px;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Command Center */
         .command-center {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
-            margin-bottom: 3rem;
+            grid-column: span 2;
         }
 
         .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 1rem;
-            padding: 1.5rem;
+            padding: 1.25rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
 
         .stat-card:hover {
             background: var(--bg-card-hover);
             transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.15);
         }
 
-        .stat-card:hover::before { opacity: 1; }
         .stat-card.green { border-color: rgba(16, 185, 129, 0.3); }
-        .stat-card.red { border-color: rgba(239, 68, 68, 0.3); }
+        .stat-icon { font-size: 1.25rem; margin-bottom: 0.35rem; }
+        .stat-value { font-size: 1.75rem; font-weight: 700; }
+        .stat-label { color: var(--text-secondary); font-size: 0.8rem; }
+        .stat-trend { font-size: 0.75rem; margin-top: 0.35rem; color: var(--accent-green); }
 
-        .stat-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
-        .stat-value { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .stat-label { color: var(--text-secondary); font-size: 0.875rem; }
-        .stat-trend { font-size: 0.875rem; margin-top: 0.5rem; }
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
 
-        .trend-up { color: var(--accent-green); }
-        .trend-down { color: var(--accent-red); }
-        .trend-flat { color: var(--text-muted); }
+        /* Activity Feed */
+        .activity-feed {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            flex: 1;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .feed-header h3 { font-size: 0.9rem; font-weight: 600; }
+
+        .feed-item {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feed-item:last-child { border-bottom: none; }
+
+        .feed-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-card-hover);
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .feed-content { flex: 1; }
+        .feed-title { font-size: 0.8rem; font-weight: 500; }
+        .feed-time { font-size: 0.7rem; color: var(--text-muted); }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+        }
+
+        .quick-actions h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-blue);
+            transform: scale(1.02);
+        }
+
+        .action-btn .icon { font-size: 1rem; }
+
+        /* Email Widget */
+        .email-widget {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+        }
+
+        .email-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .email-header h3 { font-size: 0.9rem; }
+
+        .email-count {
+            background: var(--accent-blue);
+            padding: 0.25rem 0.6rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .email-address {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Daily Thought */
+        .daily-thought {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 1rem;
+            padding: 1.25rem;
+        }
+
+        .thought-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .thought-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            line-height: 1.6;
+        }
 
         /* Section Headers */
-        .section { margin-bottom: 3rem; }
+        .section { margin-bottom: 2rem; }
         .section-header {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
-        .section-header h2 { font-size: 1.25rem; font-weight: 600; }
-        .section-header .icon { font-size: 1.25rem; }
+        .section-header h2 { font-size: 1.1rem; font-weight: 600; }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Velocity Chart */
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .chart-container h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        /* System Health */
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .health-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+        }
+
+        .health-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .health-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .health-dot.green { background: var(--accent-green); box-shadow: 0 0 8px var(--glow-green); }
+        .health-dot.yellow { background: var(--accent-yellow); }
+        .health-dot.red { background: var(--accent-red); }
+
+        .health-status {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
 
         /* Calendar */
         .calendar-container {
@@ -162,388 +371,208 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
-        .calendar-nav {
-            display: flex;
-            gap: 0.5rem;
-        }
+        .calendar-header h3 { font-size: 0.9rem; }
+
+        .calendar-nav { display: flex; gap: 0.5rem; }
 
         .calendar-nav button {
             background: var(--bg-card-hover);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.35rem;
             cursor: pointer;
-            transition: all 0.2s;
+            font-size: 0.75rem;
         }
 
-        .calendar-nav button:hover {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: var(--accent-blue);
-        }
+        .calendar-nav button:hover { border-color: var(--accent-blue); }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 0.5rem;
+            gap: 0.35rem;
         }
 
         .calendar-day-header {
             text-align: center;
-            padding: 0.5rem;
-            font-size: 0.75rem;
+            padding: 0.35rem;
+            font-size: 0.65rem;
             font-weight: 600;
             color: var(--text-muted);
         }
 
         .calendar-day {
             aspect-ratio: 1;
-            padding: 0.5rem;
+            padding: 0.35rem;
             background: rgba(0, 0, 0, 0.2);
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
+            border-radius: 0.35rem;
+            font-size: 0.7rem;
             position: relative;
             cursor: pointer;
-            transition: all 0.2s;
-            min-height: 80px;
+            min-height: 55px;
         }
 
-        .calendar-day:hover {
-            background: var(--bg-card-hover);
-            border: 1px solid var(--accent-blue);
-        }
+        .calendar-day:hover { background: var(--bg-card-hover); }
 
         .calendar-day.today {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
             border: 1px solid var(--accent-blue);
         }
 
-        .calendar-day.other-month {
-            opacity: 0.3;
-        }
+        .calendar-day.other-month { opacity: 0.3; }
+        .calendar-day-number { font-weight: 600; font-size: 0.65rem; }
 
-        .calendar-day-number {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .calendar-events {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
+        .calendar-events { display: flex; flex-direction: column; gap: 1px; margin-top: 2px; }
 
         .calendar-event {
-            font-size: 0.6rem;
-            padding: 2px 4px;
-            border-radius: 3px;
+            font-size: 0.5rem;
+            padding: 1px 3px;
+            border-radius: 2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .event-daily { background: rgba(59, 130, 246, 0.3); color: var(--accent-blue); }
-        .event-weekly { background: rgba(139, 92, 246, 0.3); color: var(--accent-purple); }
-        .event-weekday { background: rgba(16, 185, 129, 0.3); color: var(--accent-green); }
-
-        /* Cron Legend */
-        .cron-legend {
-            display: flex;
-            gap: 1.5rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 3px;
-        }
+        .event-daily { background: rgba(59, 130, 246, 0.3); }
+        .event-weekly { background: rgba(139, 92, 246, 0.3); }
+        .event-weekday { background: rgba(16, 185, 129, 0.3); }
 
         /* Today's Schedule */
-        .today-schedule {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-        }
+        .schedule-list { margin-top: 1rem; }
 
         .schedule-item {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.75rem;
+            gap: 0.75rem;
+            padding: 0.6rem;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 0.5rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.35rem;
+            font-size: 0.8rem;
         }
 
         .schedule-time {
             font-weight: 600;
             color: var(--accent-blue);
-            min-width: 70px;
+            min-width: 55px;
+            font-size: 0.75rem;
         }
 
-        .schedule-name { flex: 1; }
+        .schedule-name { flex: 1; font-size: 0.75rem; }
 
         .schedule-status {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.4rem;
             border-radius: 0.25rem;
         }
 
-        .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
         .status-done { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
-
-        /* OKR Cards */
-        .okr-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .okr-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .okr-card:hover {
-            background: var(--bg-card-hover);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .okr-title {
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .okr-kr {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.75rem;
-            padding: 0.75rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 0.5rem;
-        }
-
-        .kr-text { flex: 1; font-size: 0.875rem; }
-
-        .kr-progress {
-            width: 100px;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .kr-progress-bar {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.5s ease;
-        }
-
-        .health-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.35rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-top: 1rem;
-        }
-
-        .health-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
-        .health-yellow { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
-        .health-red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+        .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
 
         /* Projects Grid */
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
         }
 
         .project-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 1rem;
-            padding: 1.5rem;
-            cursor: pointer;
+            padding: 1.25rem;
             transition: all 0.3s ease;
         }
 
-        .project-card:hover {
-            background: var(--bg-card-hover);
-            transform: translateY(-2px);
-        }
+        .project-card:hover { transform: translateY(-2px); }
 
         .project-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
+            align-items: center;
+            margin-bottom: 0.75rem;
         }
 
-        .project-name {
-            font-size: 1.125rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .project-name { font-size: 1rem; font-weight: 600; }
 
         .project-health {
-            font-size: 0.875rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.35rem;
         }
 
         .project-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
-            margin: 1rem 0;
+            gap: 0.5rem;
         }
 
         .project-stat {
-            padding: 0.75rem;
+            padding: 0.5rem;
             background: rgba(0, 0, 0, 0.2);
-            border-radius: 0.5rem;
+            border-radius: 0.35rem;
         }
 
-        .project-stat-label { font-size: 0.75rem; color: var(--text-muted); }
-        .project-stat-value { font-weight: 600; }
-
-        .project-status-good {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--accent-green);
-        }
-
-        /* Blockers Section */
-        .no-blockers {
-            background: var(--bg-card);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 1rem;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .no-blockers-icon { font-size: 3rem; margin-bottom: 1rem; }
-        .no-blockers-text { color: var(--accent-green); font-size: 1.25rem; font-weight: 600; }
+        .project-stat-label { font-size: 0.65rem; color: var(--text-muted); }
+        .project-stat-value { font-size: 0.8rem; font-weight: 600; }
 
         /* Scorecard */
         .scorecard {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            gap: 1.5rem;
         }
 
         .score-column {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 1rem;
-            padding: 1.5rem;
+            padding: 1.25rem;
         }
 
         .score-column h3 {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 1rem;
-            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
         }
 
         .score-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0;
-            font-size: 0.875rem;
+            padding: 0.35rem 0;
+            font-size: 0.8rem;
             color: var(--text-secondary);
         }
 
         .wins-column h3 { color: var(--accent-green); }
         .losses-column h3 { color: var(--accent-red); }
 
-        /* Timeline */
-        .timeline {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-        }
-
-        .timeline-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-        }
-
-        .timeline-week {
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 0.5rem;
-            text-align: center;
-        }
-
-        .timeline-week.active {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .timeline-week-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .timeline-week-content { font-size: 0.875rem; }
-
         /* Footer */
         .footer {
             text-align: center;
-            padding: 2rem 0;
+            padding: 1.5rem 0;
             border-top: 1px solid var(--border);
-            margin-top: 3rem;
             color: var(--text-muted);
-            font-size: 0.875rem;
+            font-size: 0.75rem;
         }
 
         /* Responsive */
+        @media (max-width: 1200px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .command-center { grid-column: span 1; }
+            .projects-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
         @media (max-width: 768px) {
             .container { padding: 1rem; }
+            .header { flex-direction: column; gap: 1rem; }
             .command-center { grid-template-columns: repeat(2, 1fr); }
-            .stat-card:nth-child(5) { grid-column: span 2; }
-            .okr-grid { grid-template-columns: 1fr; }
+            .two-col { grid-template-columns: 1fr; }
             .projects-grid { grid-template-columns: 1fr; }
             .scorecard { grid-template-columns: 1fr; }
-            .timeline-bar { grid-template-columns: repeat(2, 1fr); }
-            .calendar-day { min-height: 60px; }
         }
     </style>
 </head>
@@ -551,171 +580,224 @@
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>🎯 MISSION CONTROL <span class="version-badge">v4.1</span><span class="live-badge"><span class="live-dot"></span>LIVE</span></h1>
-            <p class="header-meta">Commander: Chad | Co-Pilot: Frank | Last Sync: <span id="lastSync">Loading...</span></p>
+            <div class="header-left">
+                <h1>🎯 MISSION CONTROL</h1>
+                <div class="header-badges">
+                    <span class="badge badge-version">v4.2</span>
+                    <span class="badge badge-live"><span class="live-dot"></span> LIVE</span>
+                </div>
+            </div>
+            <div class="weather-widget" id="weatherWidget">
+                <div class="weather-temp" id="weatherTemp">--°</div>
+                <div class="weather-condition" id="weatherCondition">Loading...</div>
+                <div class="weather-details" id="weatherDetails">--</div>
+                <div class="weather-location">📍 Chicago, IL</div>
+            </div>
         </header>
 
-        <!-- Command Center -->
-        <section class="section">
-            <div class="command-center" id="commandCenter">
+        <!-- Main Grid: Command Center + Sidebar -->
+        <div class="main-grid">
+            <!-- Command Center -->
+            <div class="command-center">
                 <div class="stat-card green" onclick="scrollToSection('scorecard')">
                     <div class="stat-icon">🏆</div>
-                    <div class="stat-value" id="winRate">86%</div>
+                    <div class="stat-value">86%</div>
                     <div class="stat-label">Win Rate</div>
-                    <div class="stat-trend trend-up">↑ 19/22</div>
+                    <div class="stat-trend">↑ 19/22</div>
                 </div>
                 <div class="stat-card" onclick="scrollToSection('projects')">
                     <div class="stat-icon">🔥</div>
-                    <div class="stat-value" id="activeProjects">3</div>
+                    <div class="stat-value">3</div>
                     <div class="stat-label">Active Projects</div>
-                    <div class="stat-trend trend-flat">→</div>
                 </div>
-                <div class="stat-card green" onclick="scrollToSection('blockers')" id="blockerCard">
+                <div class="stat-card green" onclick="scrollToSection('health')">
                     <div class="stat-icon">🚨</div>
-                    <div class="stat-value" id="blockerCount">0</div>
+                    <div class="stat-value">0</div>
                     <div class="stat-label">Blockers</div>
-                    <div class="stat-trend trend-up">✅ Clear!</div>
+                    <div class="stat-trend">✅ Clear</div>
                 </div>
                 <div class="stat-card" onclick="scrollToSection('calendar')">
                     <div class="stat-icon">⚡</div>
-                    <div class="stat-value" id="cronJobs">12</div>
+                    <div class="stat-value">12</div>
                     <div class="stat-label">Cron Jobs</div>
-                    <div class="stat-trend trend-flat">Active</div>
                 </div>
-                <div class="stat-card" onclick="scrollToSection('calendar')">
-                    <div class="stat-icon">📅</div>
-                    <div class="stat-value" id="daysActive">6</div>
-                    <div class="stat-label">Days Active</div>
-                    <div class="stat-trend trend-flat">Since Feb 2</div>
+            </div>
+
+            <!-- Daily Thought -->
+            <div class="daily-thought">
+                <div class="thought-header">💭 Daily Thought</div>
+                <div class="thought-text" id="dailyThought">
+                    "You cleared all blockers in one session. That's the power of batching — momentum compounds. Keep that energy for designs today."
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3>⚡ Quick Actions</h3>
+                    <div class="action-grid">
+                        <button class="action-btn" onclick="triggerAction('email')">
+                            <span class="icon">📬</span> Check Email
+                        </button>
+                        <button class="action-btn" onclick="triggerAction('market')">
+                            <span class="icon">📊</span> Market Brief
+                        </button>
+                        <button class="action-btn" onclick="triggerAction('tasks')">
+                            <span class="icon">✅</span> Task Review
+                        </button>
+                        <button class="action-btn" onclick="triggerAction('security')">
+                            <span class="icon">🔒</span> Security Scan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Email Widget -->
+                <div class="email-widget">
+                    <div class="email-header">
+                        <h3>📬 AgentMail</h3>
+                        <span class="email-count" id="emailCount">0</span>
+                    </div>
+                    <div class="email-address">frankieg@agentmail.to</div>
+                </div>
+
+                <!-- Activity Feed -->
+                <div class="activity-feed">
+                    <div class="feed-header">
+                        <h3>🔔 Recent Activity</h3>
+                    </div>
+                    <div id="activityFeed">
+                        <div class="feed-item">
+                            <div class="feed-icon">✅</div>
+                            <div class="feed-content">
+                                <div class="feed-title">Merch + Printful signed up</div>
+                                <div class="feed-time">2 min ago</div>
+                            </div>
+                        </div>
+                        <div class="feed-item">
+                            <div class="feed-icon">📊</div>
+                            <div class="feed-content">
+                                <div class="feed-title">Dashboard upgraded to v4.2</div>
+                                <div class="feed-time">5 min ago</div>
+                            </div>
+                        </div>
+                        <div class="feed-item">
+                            <div class="feed-icon">🎯</div>
+                            <div class="feed-content">
+                                <div class="feed-title">All blockers cleared</div>
+                                <div class="feed-time">8 min ago</div>
+                            </div>
+                        </div>
+                        <div class="feed-item">
+                            <div class="feed-icon">📝</div>
+                            <div class="feed-content">
+                                <div class="feed-title">Memory updated</div>
+                                <div class="feed-time">10 min ago</div>
+                            </div>
+                        </div>
+                        <div class="feed-item">
+                            <div class="feed-icon">🔍</div>
+                            <div class="feed-content">
+                                <div class="feed-title">YouTube research complete</div>
+                                <div class="feed-time">15 min ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Velocity + System Health -->
+        <section class="section">
+            <div class="two-col">
+                <!-- Velocity Chart -->
+                <div class="chart-container">
+                    <h3>📈 Velocity (Tasks Completed)</h3>
+                    <canvas id="velocityChart" height="150"></canvas>
+                </div>
+
+                <!-- System Health -->
+                <div class="chart-container" id="health">
+                    <h3>🩺 System Health</h3>
+                    <div class="health-grid">
+                        <div class="health-item">
+                            <div class="health-name">
+                                <span class="health-dot green"></span>
+                                OpenClaw
+                            </div>
+                            <div class="health-status">Online</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-name">
+                                <span class="health-dot green"></span>
+                                Telegram
+                            </div>
+                            <div class="health-status">Connected</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-name">
+                                <span class="health-dot green"></span>
+                                Brave Search
+                            </div>
+                            <div class="health-status">Working</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-name">
+                                <span class="health-dot green"></span>
+                                RSS Feeds
+                            </div>
+                            <div class="health-status">12 active</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-name">
+                                <span class="health-dot green"></span>
+                                Cron Jobs
+                            </div>
+                            <div class="health-status">12 scheduled</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-name">
+                                <span class="health-dot green"></span>
+                                n8n
+                            </div>
+                            <div class="health-status">Running</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-name">
+                                <span class="health-dot yellow"></span>
+                                Twitter/X
+                            </div>
+                            <div class="health-status">No cookies</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-name">
+                                <span class="health-dot green"></span>
+                                AgentMail
+                            </div>
+                            <div class="health-status">Active</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Calendar Section -->
         <section class="section" id="calendar">
-            <div class="section-header">
-                <span class="icon">📅</span>
-                <h2>Automation Calendar</h2>
-            </div>
-            <div class="calendar-container">
-                <div class="calendar-header">
-                    <h3 id="calendarMonth">February 2026</h3>
-                    <div class="calendar-nav">
-                        <button onclick="prevMonth()">← Prev</button>
-                        <button onclick="nextMonth()">Next →</button>
-                    </div>
-                </div>
-                <div class="calendar-grid" id="calendarGrid">
-                    <!-- Generated by JS -->
-                </div>
-                <div class="cron-legend">
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: rgba(59, 130, 246, 0.5);"></div>
-                        <span>Daily Jobs</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: rgba(139, 92, 246, 0.5);"></div>
-                        <span>Weekly Jobs</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: rgba(16, 185, 129, 0.5);"></div>
-                        <span>Weekday Jobs</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Today's Schedule -->
-            <div class="today-schedule">
-                <h3 style="margin-bottom: 1rem;">📋 Today's Schedule</h3>
-                <div id="todaySchedule">
-                    <!-- Generated by JS -->
-                </div>
-            </div>
-        </section>
-
-        <!-- OKRs -->
-        <section class="section" id="okrs">
-            <div class="section-header">
-                <span class="icon">🎯</span>
-                <h2>OKRs — Q1 2026</h2>
-            </div>
-            <div class="okr-grid">
-                <div class="okr-card">
-                    <div class="okr-title">Objective 1: Launch First Revenue-Generating Business</div>
-                    <div class="okr-kr">
-                        <span class="kr-text">Get Merch by Amazon approved</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 50%; background: var(--accent-yellow);"></div>
+            <div class="two-col">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <h3>📅 February 2026</h3>
+                        <div class="calendar-nav">
+                            <button onclick="prevMonth()">←</button>
+                            <button onclick="nextMonth()">→</button>
                         </div>
-                        <span style="color: var(--accent-yellow);">Pending</span>
                     </div>
-                    <div class="okr-kr">
-                        <span class="kr-text">Upload 10 designs</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 0%; background: var(--text-muted);"></div>
-                        </div>
-                        <span style="color: var(--text-muted);">0/10</span>
-                    </div>
-                    <div class="okr-kr">
-                        <span class="kr-text">First sale</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 0%; background: var(--text-muted);"></div>
-                        </div>
-                        <span style="color: var(--text-muted);">$0</span>
-                    </div>
-                    <div class="health-badge health-green">🟢 Unblocked — Platforms ready!</div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
                 </div>
 
-                <div class="okr-card">
-                    <div class="okr-title">Objective 2: Build Automated Intelligence System</div>
-                    <div class="okr-kr">
-                        <span class="kr-text">Configure all data sources</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 80%; background: var(--accent-green);"></div>
-                        </div>
-                        <span style="color: var(--accent-green);">80%</span>
-                    </div>
-                    <div class="okr-kr">
-                        <span class="kr-text">Send first newsletter</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 0%; background: var(--text-muted);"></div>
-                        </div>
-                        <span style="color: var(--text-muted);">0/1</span>
-                    </div>
-                    <div class="okr-kr">
-                        <span class="kr-text">Cron automation active</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 100%; background: var(--accent-green);"></div>
-                        </div>
-                        <span style="color: var(--accent-green);">✓</span>
-                    </div>
-                    <div class="health-badge health-green">🟢 On Track</div>
-                </div>
-
-                <div class="okr-card">
-                    <div class="okr-title">Objective 3: World-Class Mission Control</div>
-                    <div class="okr-kr">
-                        <span class="kr-text">Every tile clickable</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 100%; background: var(--accent-green);"></div>
-                        </div>
-                        <span style="color: var(--accent-green);">✓</span>
-                    </div>
-                    <div class="okr-kr">
-                        <span class="kr-text">Live data feed</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 100%; background: var(--accent-green);"></div>
-                        </div>
-                        <span style="color: var(--accent-green);">✓</span>
-                    </div>
-                    <div class="okr-kr">
-                        <span class="kr-text">Cron calendar</span>
-                        <div class="kr-progress">
-                            <div class="kr-progress-bar" style="width: 100%; background: var(--accent-green);"></div>
-                        </div>
-                        <span style="color: var(--accent-green);">✓</span>
-                    </div>
-                    <div class="health-badge health-green">🟢 Best in Class</div>
+                <div class="calendar-container">
+                    <h3>📋 Today's Schedule</h3>
+                    <div class="schedule-list" id="todaySchedule"></div>
                 </div>
             </div>
         </section>
@@ -723,18 +805,18 @@
         <!-- Projects -->
         <section class="section" id="projects">
             <div class="section-header">
-                <span class="icon">🔥</span>
+                <span>🔥</span>
                 <h2>Active Projects</h2>
             </div>
             <div class="projects-grid">
                 <div class="project-card">
                     <div class="project-header">
                         <div class="project-name">👕 Trend Tees</div>
-                        <div class="project-health health-green">Ready</div>
+                        <div class="project-health" style="background: rgba(16,185,129,0.15); color: var(--accent-green);">Ready</div>
                     </div>
                     <div class="project-stats">
                         <div class="project-stat">
-                            <div class="project-stat-label">Merch by Amazon</div>
+                            <div class="project-stat-label">Merch</div>
                             <div class="project-stat-value" style="color: var(--accent-yellow);">⏳ Pending</div>
                         </div>
                         <div class="project-stat">
@@ -750,79 +832,64 @@
                             <div class="project-stat-value">0</div>
                         </div>
                     </div>
-                    <div class="project-status-good">✅ Platforms signed up — ready for designs!</div>
                 </div>
 
                 <div class="project-card">
                     <div class="project-header">
                         <div class="project-name">📈 Daily Alpha</div>
-                        <div class="project-health health-green">Active</div>
+                        <div class="project-health" style="background: rgba(16,185,129,0.15); color: var(--accent-green);">Active</div>
                     </div>
                     <div class="project-stats">
                         <div class="project-stat">
-                            <div class="project-stat-label">Brave Search</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅ Working</div>
+                            <div class="project-stat-label">Brave API</div>
+                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
                         </div>
                         <div class="project-stat">
-                            <div class="project-stat-label">RSS Feeds</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">12 ✓</div>
+                            <div class="project-stat-label">RSS</div>
+                            <div class="project-stat-value" style="color: var(--accent-green);">12 feeds</div>
                         </div>
                         <div class="project-stat">
-                            <div class="project-stat-label">Cron Jobs</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">8 Active</div>
+                            <div class="project-stat-label">Crons</div>
+                            <div class="project-stat-value" style="color: var(--accent-green);">8 active</div>
                         </div>
                         <div class="project-stat">
                             <div class="project-stat-label">Editions</div>
                             <div class="project-stat-value">0</div>
                         </div>
                     </div>
-                    <div class="project-status-good">✅ Market brief cron active</div>
                 </div>
 
                 <div class="project-card">
                     <div class="project-header">
                         <div class="project-name">🎛️ Mission Control</div>
-                        <div class="project-health health-green">v4.1</div>
+                        <div class="project-health" style="background: rgba(16,185,129,0.15); color: var(--accent-green);">v4.2</div>
                     </div>
                     <div class="project-stats">
                         <div class="project-stat">
                             <div class="project-stat-label">Live Data</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅ Active</div>
+                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
                         </div>
                         <div class="project-stat">
-                            <div class="project-stat-label">Calendar</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅ Live</div>
+                            <div class="project-stat-label">Weather</div>
+                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
                         </div>
                         <div class="project-stat">
-                            <div class="project-stat-label">Auto-Refresh</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">30s</div>
+                            <div class="project-stat-label">Velocity</div>
+                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
                         </div>
                         <div class="project-stat">
-                            <div class="project-stat-label">Blockers</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">None</div>
+                            <div class="project-stat-label">Actions</div>
+                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Blockers -->
-        <section class="section" id="blockers">
-            <div class="section-header">
-                <span class="icon">🚨</span>
-                <h2>Blockers</h2>
-            </div>
-            <div class="no-blockers">
-                <div class="no-blockers-icon">🎉</div>
-                <div class="no-blockers-text">All Clear! No Blockers</div>
-                <p style="color: var(--text-secondary); margin-top: 0.5rem;">All platforms signed up. Ready to execute.</p>
-            </div>
-        </section>
-
-        <!-- Win/Loss Scorecard -->
+        <!-- Scorecard -->
         <section class="section" id="scorecard">
             <div class="section-header">
-                <span class="icon">🏆</span>
+                <span>🏆</span>
                 <h2>Win/Loss Scorecard — Week 1</h2>
             </div>
             <div class="scorecard">
@@ -836,17 +903,10 @@
                     <div class="score-item">✓ Daily Alpha specced</div>
                     <div class="score-item">✓ Tools installed</div>
                     <div class="score-item">✓ Security hardened</div>
-                    <div class="score-item">✓ Model auth fixed</div>
-                    <div class="score-item">✓ RSS feeds configured</div>
-                    <div class="score-item">✓ Mission Control v4</div>
-                    <div class="score-item">✓ n8n installed</div>
-                    <div class="score-item">✓ Codex CLI installed</div>
-                    <div class="score-item">✓ Market brief cron</div>
-                    <div class="score-item">✓ Skill Scanner</div>
+                    <div class="score-item">✓ n8n + Codex CLI</div>
                     <div class="score-item">✓ Merch by Amazon ✨</div>
                     <div class="score-item">✓ Printful signup ✨</div>
-                    <div class="score-item">✓ Live dashboard ✨</div>
-                    <div class="score-item">✓ Cron calendar ✨</div>
+                    <div class="score-item">✓ Live dashboard v4.2 ✨</div>
                 </div>
                 <div class="score-column losses-column">
                     <h3>❌ Losses (3)</h3>
@@ -857,120 +917,110 @@
             </div>
         </section>
 
-        <!-- Timeline -->
-        <section class="section" id="timeline">
-            <div class="section-header">
-                <span class="icon">🗓️</span>
-                <h2>February 2026 Timeline</h2>
-            </div>
-            <div class="timeline">
-                <div class="timeline-bar">
-                    <div class="timeline-week active">
-                        <div class="timeline-week-label">Week 1 (Feb 2-8)</div>
-                        <div class="timeline-week-content">
-                            ✅ Frank online<br>
-                            ✅ All platforms signed<br>
-                            ✅ Live dashboard
-                        </div>
-                    </div>
-                    <div class="timeline-week">
-                        <div class="timeline-week-label">Week 2 (Feb 9-15)</div>
-                        <div class="timeline-week-content">
-                            📌 Merch approved?<br>
-                            📌 First designs<br>
-                            📌 Newsletter v1
-                        </div>
-                    </div>
-                    <div class="timeline-week">
-                        <div class="timeline-week-label">Week 3 (Feb 16-22)</div>
-                        <div class="timeline-week-content">
-                            📌 Designs live<br>
-                            📌 Newsletter active
-                        </div>
-                    </div>
-                    <div class="timeline-week">
-                        <div class="timeline-week-label">Week 4 (Feb 23-28)</div>
-                        <div class="timeline-week-content">
-                            🎯 First sale?<br>
-                            📌 Scale up
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Footer -->
         <footer class="footer">
-            <p>Mission Control v4.1 — Live Data + Cron Calendar</p>
-            <p>Auto-refreshes every 30 seconds. Last refresh: <span id="lastRefresh">—</span></p>
+            <p>Mission Control v4.2 — Weather • Velocity • Activity Feed • Quick Actions • System Health</p>
+            <p>Auto-refreshes every 30s • Last update: <span id="lastRefresh">—</span></p>
         </footer>
     </div>
 
     <script>
-        // Cron jobs data
+        // Cron jobs
         const cronJobs = [
-            { name: "OpenClaw Update", time: "06:00", schedule: "daily", expr: "0 6 * * *" },
-            { name: "Topic Review", time: "06:00", schedule: "daily", expr: "0 6 * * *" },
-            { name: "Market Brief", time: "07:00", schedule: "weekday", expr: "0 7 * * 1-5" },
-            { name: "Email Morning", time: "08:00", schedule: "daily", expr: "0 8 * * *" },
-            { name: "Security Audit", time: "08:00", schedule: "weekly-mon", expr: "0 8 * * 1" },
-            { name: "Memory Curator", time: "08:00", schedule: "weekly-sun", expr: "0 8 * * 0" },
-            { name: "Task Morning", time: "09:00", schedule: "daily", expr: "0 9 * * *" },
-            { name: "Email Midday", time: "12:00", schedule: "daily", expr: "0 12 * * *" },
-            { name: "Email Afternoon", time: "16:00", schedule: "daily", expr: "0 16 * * *" },
-            { name: "Task Evening", time: "17:00", schedule: "daily", expr: "0 17 * * *" },
-            { name: "Skills Scan", time: "18:00", schedule: "weekly-sun", expr: "0 18 * * 0" },
-            { name: "Email Evening", time: "20:00", schedule: "daily", expr: "0 20 * * *" }
+            { name: "Update Check", time: "06:00", schedule: "daily" },
+            { name: "Topic Review", time: "06:00", schedule: "daily" },
+            { name: "Market Brief", time: "07:00", schedule: "weekday" },
+            { name: "Email AM", time: "08:00", schedule: "daily" },
+            { name: "Security", time: "08:00", schedule: "weekly-mon" },
+            { name: "Memory", time: "08:00", schedule: "weekly-sun" },
+            { name: "Task AM", time: "09:00", schedule: "daily" },
+            { name: "Email Mid", time: "12:00", schedule: "daily" },
+            { name: "Email PM", time: "16:00", schedule: "daily" },
+            { name: "Task PM", time: "17:00", schedule: "daily" },
+            { name: "Skills Scan", time: "18:00", schedule: "weekly-sun" },
+            { name: "Email Eve", time: "20:00", schedule: "daily" }
         ];
 
-        let currentDate = new Date();
-        let viewMonth = currentDate.getMonth();
-        let viewYear = currentDate.getFullYear();
+        let viewMonth = 1; // Feb
+        let viewYear = 2026;
 
-        function getJobsForDay(date) {
-            const dayOfWeek = date.getDay(); // 0 = Sunday
-            const jobs = [];
-            
-            cronJobs.forEach(job => {
-                if (job.schedule === 'daily') {
-                    jobs.push(job);
-                } else if (job.schedule === 'weekday' && dayOfWeek >= 1 && dayOfWeek <= 5) {
-                    jobs.push(job);
-                } else if (job.schedule === 'weekly-sun' && dayOfWeek === 0) {
-                    jobs.push(job);
-                } else if (job.schedule === 'weekly-mon' && dayOfWeek === 1) {
-                    jobs.push(job);
+        // Weather
+        async function fetchWeather() {
+            try {
+                const resp = await fetch('https://wttr.in/Chicago?format=%C|%t|%h|%w');
+                const text = await resp.text();
+                const [condition, temp, humidity, wind] = text.split('|');
+                document.getElementById('weatherCondition').textContent = condition.trim();
+                document.getElementById('weatherTemp').textContent = temp.trim();
+                document.getElementById('weatherDetails').textContent = `💧 ${humidity.trim()} • 💨 ${wind.trim()}`;
+            } catch (e) {
+                document.getElementById('weatherCondition').textContent = 'Unable to load';
+            }
+        }
+
+        // Velocity Chart
+        function initVelocityChart() {
+            const ctx = document.getElementById('velocityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Feb 2', 'Feb 3', 'Feb 4', 'Feb 5', 'Feb 6', 'Feb 7'],
+                    datasets: [{
+                        label: 'Tasks Completed',
+                        data: [7, 4, 3, 2, 5, 4],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                        }
+                    }
                 }
             });
-            
-            return jobs.sort((a, b) => a.time.localeCompare(b.time));
+        }
+
+        // Calendar
+        function getJobsForDay(date) {
+            const dow = date.getDay();
+            return cronJobs.filter(job => {
+                if (job.schedule === 'daily') return true;
+                if (job.schedule === 'weekday' && dow >= 1 && dow <= 5) return true;
+                if (job.schedule === 'weekly-sun' && dow === 0) return true;
+                if (job.schedule === 'weekly-mon' && dow === 1) return true;
+                return false;
+            }).sort((a, b) => a.time.localeCompare(b.time));
         }
 
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
-            const monthLabel = document.getElementById('calendarMonth');
-            
-            const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                          'July', 'August', 'September', 'October', 'November', 'December'];
-            monthLabel.textContent = `${months[viewMonth]} ${viewYear}`;
-            
-            // Day headers
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             let html = days.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
             
-            // First day of month
             const firstDay = new Date(viewYear, viewMonth, 1);
             const lastDay = new Date(viewYear, viewMonth + 1, 0);
             const startPad = firstDay.getDay();
+            const prevLast = new Date(viewYear, viewMonth, 0).getDate();
             
-            // Previous month padding
-            const prevMonthLast = new Date(viewYear, viewMonth, 0).getDate();
             for (let i = startPad - 1; i >= 0; i--) {
-                const day = prevMonthLast - i;
-                html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+                html += `<div class="calendar-day other-month"><div class="calendar-day-number">${prevLast - i}</div></div>`;
             }
             
-            // Current month
             const today = new Date();
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const date = new Date(viewYear, viewMonth, day);
@@ -978,27 +1028,16 @@
                 const jobs = getJobsForDay(date);
                 
                 let eventsHtml = '<div class="calendar-events">';
-                jobs.slice(0, 3).forEach(job => {
-                    let eventClass = 'event-daily';
-                    if (job.schedule === 'weekday') eventClass = 'event-weekday';
-                    if (job.schedule.startsWith('weekly')) eventClass = 'event-weekly';
-                    eventsHtml += `<div class="calendar-event ${eventClass}">${job.time} ${job.name}</div>`;
+                jobs.slice(0, 2).forEach(job => {
+                    let cls = job.schedule === 'daily' ? 'event-daily' : 
+                              job.schedule === 'weekday' ? 'event-weekday' : 'event-weekly';
+                    eventsHtml += `<div class="calendar-event ${cls}">${job.time}</div>`;
                 });
-                if (jobs.length > 3) {
-                    eventsHtml += `<div class="calendar-event" style="background: rgba(255,255,255,0.1);">+${jobs.length - 3} more</div>`;
-                }
+                if (jobs.length > 2) eventsHtml += `<div class="calendar-event" style="background:rgba(255,255,255,0.1)">+${jobs.length-2}</div>`;
                 eventsHtml += '</div>';
                 
                 html += `<div class="calendar-day ${isToday ? 'today' : ''}">
-                    <div class="calendar-day-number">${day}</div>
-                    ${eventsHtml}
-                </div>`;
-            }
-            
-            // Next month padding
-            const endPad = 42 - (startPad + lastDay.getDate());
-            for (let i = 1; i <= endPad; i++) {
-                html += `<div class="calendar-day other-month"><div class="calendar-day-number">${i}</div></div>`;
+                    <div class="calendar-day-number">${day}</div>${eventsHtml}</div>`;
             }
             
             grid.innerHTML = html;
@@ -1006,82 +1045,61 @@
 
         function renderTodaySchedule() {
             const container = document.getElementById('todaySchedule');
-            const today = new Date();
-            const jobs = getJobsForDay(today);
-            const currentHour = today.getHours();
+            const jobs = getJobsForDay(new Date());
+            const hour = new Date().getHours();
             
-            if (jobs.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted);">No scheduled jobs today.</p>';
-                return;
-            }
-            
-            let html = '';
-            jobs.forEach(job => {
+            container.innerHTML = jobs.map(job => {
                 const jobHour = parseInt(job.time.split(':')[0]);
-                const isPast = jobHour < currentHour;
-                const statusClass = isPast ? 'status-done' : 'status-pending';
-                const statusText = isPast ? '✓ Done' : 'Pending';
-                
-                html += `<div class="schedule-item">
+                const done = jobHour < hour;
+                return `<div class="schedule-item">
                     <div class="schedule-time">${job.time}</div>
                     <div class="schedule-name">${job.name}</div>
-                    <div class="schedule-status ${statusClass}">${statusText}</div>
+                    <div class="schedule-status ${done ? 'status-done' : 'status-pending'}">${done ? '✓' : '⏳'}</div>
                 </div>`;
-            });
-            
-            container.innerHTML = html;
+            }).join('');
         }
 
-        function prevMonth() {
-            viewMonth--;
-            if (viewMonth < 0) {
-                viewMonth = 11;
-                viewYear--;
-            }
-            renderCalendar();
-        }
-
-        function nextMonth() {
-            viewMonth++;
-            if (viewMonth > 11) {
-                viewMonth = 0;
-                viewYear++;
-            }
-            renderCalendar();
-        }
+        function prevMonth() { viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } renderCalendar(); }
+        function nextMonth() { viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } renderCalendar(); }
 
         function scrollToSection(id) {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         }
 
-        function updateTimestamps() {
-            const now = new Date();
-            document.getElementById('lastSync').textContent = now.toLocaleString('en-US', {
-                timeZone: 'America/Chicago',
-                month: 'short', day: 'numeric', year: 'numeric',
-                hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
-            });
-            document.getElementById('lastRefresh').textContent = now.toLocaleTimeString('en-US', {
-                timeZone: 'America/Chicago',
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            });
-            
-            // Days active
-            const startDate = new Date('2026-02-02');
-            const daysActive = Math.floor((now - startDate) / (1000 * 60 * 60 * 24)) + 1;
-            document.getElementById('daysActive').textContent = daysActive;
+        function triggerAction(action) {
+            alert(`🚀 Triggering: ${action}\n\nThis would send a command to Frank via the API.`);
         }
 
-        // Initialize
+        function updateTimestamp() {
+            document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString('en-US', {
+                timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+
+        // Daily thoughts
+        const thoughts = [
+            "You cleared all blockers in one session. That's the power of batching — momentum compounds.",
+            "Printful is ready now. While waiting on Merch approval, you could have designs live today.",
+            "86% win rate in week one. Keep stacking small wins — they compound into big results.",
+            "The best dashboard is one that drives action, not just displays status. Every tile should lead somewhere.",
+            "Your infrastructure is solid. Now it's time to execute on the business side."
+        ];
+        document.getElementById('dailyThought').textContent = `"${thoughts[Math.floor(Math.random() * thoughts.length)]}"`;
+
+        // Init
+        fetchWeather();
+        initVelocityChart();
         renderCalendar();
         renderTodaySchedule();
-        updateTimestamps();
+        updateTimestamp();
 
-        // Auto-refresh every 30 seconds
+        // Auto-refresh
         setInterval(() => {
             renderTodaySchedule();
-            updateTimestamps();
+            updateTimestamp();
         }, 30000);
+
+        setInterval(fetchWeather, 600000); // Weather every 10 min
     </script>
 </body>
 </html>
