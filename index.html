@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Control v4.2</title>
+    <title>Mission Control v5.0 — Ultimate Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -22,958 +22,1060 @@
             --accent-blue: #3b82f6;
             --accent-purple: #8b5cf6;
             --accent-cyan: #06b6d4;
-            --glow-green: rgba(16, 185, 129, 0.3);
-            --glow-blue: rgba(59, 130, 246, 0.3);
+            --accent-pink: #ec4899;
+            --accent-orange: #f97316;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
-        .container { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
+        .dashboard { display: grid; grid-template-columns: 1fr 320px; min-height: 100vh; }
+
+        /* Main Content */
+        .main-content { padding: 1.5rem; overflow-y: auto; }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+        }
 
         /* Header */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
         }
 
-        .header-left h1 {
-            font-size: 2rem;
+        .header h1 {
+            font-size: 1.75rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .header-badges {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
+        .header-badges { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
 
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
-            padding: 0.25rem 0.75rem;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
             border-radius: 1rem;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
         }
 
         .badge-version { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); }
         .badge-live { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .badge-ultimate { background: linear-gradient(135deg, var(--accent-orange), var(--accent-pink)); }
 
         .live-dot {
-            width: 6px; height: 6px;
+            width: 5px; height: 5px;
             background: var(--accent-green);
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
-        /* Weather Widget */
+        /* Weather */
         .weather-widget {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15));
-            border: 1px solid rgba(6, 182, 212, 0.3);
+            background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(59,130,246,0.15));
+            border: 1px solid rgba(6,182,212,0.3);
             border-radius: 1rem;
-            padding: 1.25rem;
-            text-align: center;
-            min-width: 200px;
-        }
-
-        .weather-temp {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--accent-cyan);
-        }
-
-        .weather-condition { color: var(--text-secondary); font-size: 0.875rem; }
-        .weather-details { color: var(--text-muted); font-size: 0.75rem; margin-top: 0.5rem; }
-        .weather-location { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
-
-        /* Main Grid */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 350px;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Command Center */
-        .command-center {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
             gap: 1rem;
-            grid-column: span 2;
+        }
+
+        .weather-temp { font-size: 2rem; font-weight: 700; color: var(--accent-cyan); }
+        .weather-info { font-size: 0.75rem; color: var(--text-secondary); }
+
+        /* Command Grid */
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
         }
 
         .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.25rem;
+            border-radius: 0.75rem;
+            padding: 1rem;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .stat-card:hover {
-            background: var(--bg-card-hover);
-            transform: translateY(-2px);
-        }
-
-        .stat-card.green { border-color: rgba(16, 185, 129, 0.3); }
-        .stat-icon { font-size: 1.25rem; margin-bottom: 0.35rem; }
-        .stat-value { font-size: 1.75rem; font-weight: 700; }
-        .stat-label { color: var(--text-secondary); font-size: 0.8rem; }
-        .stat-trend { font-size: 0.75rem; margin-top: 0.35rem; color: var(--accent-green); }
-
-        /* Sidebar */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        /* Activity Feed */
-        .activity-feed {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            flex: 1;
-        }
-
-        .feed-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .feed-header h3 { font-size: 0.9rem; font-weight: 600; }
-
-        .feed-item {
-            display: flex;
-            gap: 0.75rem;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .feed-item:last-child { border-bottom: none; }
-
-        .feed-icon {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-card-hover);
-            border-radius: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .feed-content { flex: 1; }
-        .feed-title { font-size: 0.8rem; font-weight: 500; }
-        .feed-time { font-size: 0.7rem; color: var(--text-muted); }
-
-        /* Quick Actions */
-        .quick-actions {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.25rem;
-        }
-
-        .quick-actions h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .action-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-        }
-
-        .action-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            color: var(--text-primary);
-            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .action-btn:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--accent-blue);
-            transform: scale(1.02);
-        }
+        .stat-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
+        .stat-card.green { border-color: rgba(16,185,129,0.4); }
 
-        .action-btn .icon { font-size: 1rem; }
+        .stat-icon { font-size: 1.25rem; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0; }
+        .stat-label { font-size: 0.7rem; color: var(--text-secondary); }
 
-        /* Email Widget */
-        .email-widget {
+        /* Grid Layouts */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem; }
+
+        /* Cards */
+        .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.25rem;
+            border-radius: 0.75rem;
+            padding: 1rem;
         }
 
-        .email-header {
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.75rem;
         }
 
-        .email-header h3 { font-size: 0.9rem; }
+        .card-header h3 { font-size: 0.85rem; font-weight: 600; }
 
-        .email-count {
-            background: var(--accent-blue);
-            padding: 0.25rem 0.6rem;
-            border-radius: 1rem;
-            font-size: 0.75rem;
-            font-weight: 600;
+        .card-badge {
+            font-size: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            background: var(--bg-card-hover);
         }
 
-        .email-address {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        /* Daily Thought */
-        .daily-thought {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 1rem;
-            padding: 1.25rem;
-        }
-
-        .thought-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .thought-text {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            font-style: italic;
-            line-height: 1.6;
-        }
-
-        /* Section Headers */
-        .section { margin-bottom: 2rem; }
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-        .section-header h2 { font-size: 1.1rem; font-weight: 600; }
-
-        /* Two Column Layout */
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        /* Velocity Chart */
-        .chart-container {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-        }
-
-        .chart-container h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        /* System Health */
-        .health-grid {
+        /* Smart Home Panel */
+        .home-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
 
-        .health-item {
+        .home-device {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.75rem;
-            background: rgba(0, 0, 0, 0.2);
+            padding: 0.6rem;
+            background: rgba(0,0,0,0.2);
             border-radius: 0.5rem;
+            font-size: 0.75rem;
         }
 
-        .health-name {
+        .device-info { display: flex; align-items: center; gap: 0.5rem; }
+        .device-icon { font-size: 1rem; }
+
+        .toggle {
+            width: 36px;
+            height: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle.on { background: var(--accent-green); }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+
+        .toggle.on::after { transform: translateX(16px); }
+
+        /* Camera Feed */
+        .camera-feed {
+            background: #000;
+            border-radius: 0.5rem;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-placeholder {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        .camera-live {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            background: var(--accent-red);
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .camera-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .camera-thumb {
+            background: #111;
+            border-radius: 0.35rem;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .camera-thumb:hover { border-color: var(--accent-blue); }
+
+        /* Stock Watchlist */
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stock-item:last-child { border-bottom: none; }
+
+        .stock-symbol { font-weight: 600; font-size: 0.8rem; }
+        .stock-name { font-size: 0.65rem; color: var(--text-muted); }
+
+        .stock-price { text-align: right; }
+        .stock-value { font-weight: 600; font-size: 0.8rem; }
+        .stock-change { font-size: 0.65rem; }
+        .stock-up { color: var(--accent-green); }
+        .stock-down { color: var(--accent-red); }
+
+        /* Travel Status */
+        .flight-card {
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .flight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .flight-number { font-weight: 700; color: var(--accent-blue); }
+        .flight-status {
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            background: rgba(16,185,129,0.2);
+            color: var(--accent-green);
+        }
+
+        .flight-route {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             font-size: 0.8rem;
         }
 
-        .health-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
+        .flight-route .arrow { color: var(--text-muted); }
 
-        .health-dot.green { background: var(--accent-green); box-shadow: 0 0 8px var(--glow-green); }
-        .health-dot.yellow { background: var(--accent-yellow); }
-        .health-dot.red { background: var(--accent-red); }
-
-        .health-status {
+        .flight-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
             font-size: 0.7rem;
-            color: var(--text-muted);
+            color: var(--text-secondary);
         }
 
-        /* Calendar */
-        .calendar-container {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
+        /* Delivery Tracker */
+        .delivery-card {
+            background: linear-gradient(135deg, rgba(249,115,22,0.1), rgba(234,179,8,0.1));
+            border: 1px solid rgba(249,115,22,0.3);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
         }
 
-        .calendar-header {
+        .delivery-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
         }
 
-        .calendar-header h3 { font-size: 0.9rem; }
-
-        .calendar-nav { display: flex; gap: 0.5rem; }
-
-        .calendar-nav button {
-            background: var(--bg-card-hover);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 0.35rem 0.75rem;
-            border-radius: 0.35rem;
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
-
-        .calendar-nav button:hover { border-color: var(--accent-blue); }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 0.35rem;
-        }
-
-        .calendar-day-header {
-            text-align: center;
-            padding: 0.35rem;
+        .delivery-restaurant { font-weight: 600; font-size: 0.85rem; }
+        .delivery-eta {
             font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            background: rgba(249,115,22,0.2);
+            color: var(--accent-orange);
         }
 
-        .calendar-day {
-            aspect-ratio: 1;
-            padding: 0.35rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 0.35rem;
-            font-size: 0.7rem;
+        .delivery-progress {
+            margin-top: 0.75rem;
+            display: flex;
+            justify-content: space-between;
             position: relative;
-            cursor: pointer;
-            min-height: 55px;
         }
 
-        .calendar-day:hover { background: var(--bg-card-hover); }
-
-        .calendar-day.today {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-            border: 1px solid var(--accent-blue);
+        .delivery-progress::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: var(--border);
+            transform: translateY(-50%);
         }
 
-        .calendar-day.other-month { opacity: 0.3; }
-        .calendar-day-number { font-weight: 600; font-size: 0.65rem; }
-
-        .calendar-events { display: flex; flex-direction: column; gap: 1px; margin-top: 2px; }
-
-        .calendar-event {
-            font-size: 0.5rem;
-            padding: 1px 3px;
-            border-radius: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .delivery-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            z-index: 1;
         }
 
-        .event-daily { background: rgba(59, 130, 246, 0.3); }
-        .event-weekly { background: rgba(139, 92, 246, 0.3); }
-        .event-weekday { background: rgba(16, 185, 129, 0.3); }
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
 
-        /* Today's Schedule */
-        .schedule-list { margin-top: 1rem; }
+        .step-icon.active {
+            border-color: var(--accent-orange);
+            background: rgba(249,115,22,0.2);
+        }
 
-        .schedule-item {
+        .step-icon.done {
+            border-color: var(--accent-green);
+            background: var(--accent-green);
+        }
+
+        .step-label { font-size: 0.55rem; color: var(--text-muted); }
+
+        /* Sub-Agent Monitor */
+        .agent-item {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             padding: 0.6rem;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0,0,0,0.2);
             border-radius: 0.5rem;
-            margin-bottom: 0.35rem;
-            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
         }
 
-        .schedule-time {
-            font-weight: 600;
-            color: var(--accent-blue);
-            min-width: 55px;
+        .agent-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .agent-info { flex: 1; }
+        .agent-name { font-size: 0.8rem; font-weight: 600; }
+        .agent-task { font-size: 0.65rem; color: var(--text-secondary); }
+
+        .agent-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .agent-status.running { background: var(--accent-green); }
+        .agent-status.idle { background: var(--accent-yellow); animation: none; }
+
+        /* Chat Interface */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-header h3 { font-size: 0.85rem; }
+
+        .chat-messages {
+            flex: 1;
+            padding: 0.75rem;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .chat-message {
+            margin-bottom: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-message.user { justify-content: flex-end; }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.75rem;
             font-size: 0.75rem;
         }
 
-        .schedule-name { flex: 1; font-size: 0.75rem; }
-
-        .schedule-status {
-            font-size: 0.65rem;
-            padding: 0.2rem 0.4rem;
-            border-radius: 0.25rem;
+        .message-bubble.bot {
+            background: var(--bg-card-hover);
+            border-bottom-left-radius: 0;
         }
 
-        .status-done { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
-        .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
-
-        /* Projects Grid */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
+        .message-bubble.user {
+            background: var(--accent-blue);
+            border-bottom-right-radius: 0;
         }
 
-        .project-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            transition: all 0.3s ease;
-        }
-
-        .project-card:hover { transform: translateY(-2px); }
-
-        .project-header {
+        .chat-input {
             display: flex;
-            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input input {
+            flex: 1;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+        }
+
+        .chat-input input:focus { outline: none; border-color: var(--accent-blue); }
+
+        .chat-input button {
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            color: white;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        /* Voice Player */
+        .voice-player {
+            background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(236,72,153,0.1));
+            border: 1px solid rgba(139,92,246,0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+
+        .voice-header {
+            display: flex;
             align-items: center;
+            gap: 0.5rem;
             margin-bottom: 0.75rem;
         }
 
-        .project-name { font-size: 1rem; font-weight: 600; }
+        .voice-header h3 { font-size: 0.85rem; }
 
-        .project-health {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 0.35rem;
+        .voice-message {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 0.5rem;
         }
 
-        .project-stats {
+        .play-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-purple);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .voice-waveform {
+            flex: 1;
+            height: 24px;
+            background: linear-gradient(90deg, 
+                var(--accent-purple) 0%, 
+                var(--accent-purple) 30%, 
+                var(--border) 30%);
+            border-radius: 0.25rem;
+        }
+
+        .voice-duration { font-size: 0.7rem; color: var(--text-muted); }
+
+        /* Activity Feed */
+        .activity-item {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.75rem;
+        }
+
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon { font-size: 0.9rem; }
+        .activity-text { flex: 1; color: var(--text-secondary); }
+        .activity-time { font-size: 0.65rem; color: var(--text-muted); }
+
+        /* Quick Actions */
+        .quick-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 0.5rem;
         }
 
-        .project-stat {
-            padding: 0.5rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 0.35rem;
-        }
-
-        .project-stat-label { font-size: 0.65rem; color: var(--text-muted); }
-        .project-stat-value { font-size: 0.8rem; font-weight: 600; }
-
-        /* Scorecard */
-        .scorecard {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        .score-column {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.25rem;
-        }
-
-        .score-column h3 {
+        .quick-btn {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 0.75rem;
-            font-size: 0.9rem;
+            padding: 0.6rem;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .score-item {
-            padding: 0.35rem 0;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
+        .quick-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-blue);
         }
 
-        .wins-column h3 { color: var(--accent-green); }
-        .losses-column h3 { color: var(--accent-red); }
+        .quick-btn .icon { font-size: 1rem; }
+
+        /* Projects */
+        .project-mini {
+            padding: 0.6rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-mini-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.35rem;
+        }
+
+        .project-mini-name { font-size: 0.8rem; font-weight: 600; }
+
+        .project-mini-status {
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+        }
+
+        .status-ready { background: rgba(16,185,129,0.2); color: var(--accent-green); }
+
+        .project-mini-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        /* Velocity Chart */
+        .chart-wrapper { height: 120px; }
 
         /* Footer */
         .footer {
+            padding: 1rem;
             text-align: center;
-            padding: 1.5rem 0;
-            border-top: 1px solid var(--border);
+            font-size: 0.65rem;
             color: var(--text-muted);
-            font-size: 0.75rem;
+            border-top: 1px solid var(--border);
         }
 
         /* Responsive */
         @media (max-width: 1200px) {
-            .main-grid { grid-template-columns: 1fr; }
-            .command-center { grid-column: span 1; }
-            .projects-grid { grid-template-columns: repeat(2, 1fr); }
+            .dashboard { grid-template-columns: 1fr; }
+            .sidebar { border-left: none; border-top: 1px solid var(--border); }
+            .command-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
         @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            .header { flex-direction: column; gap: 1rem; }
-            .command-center { grid-template-columns: repeat(2, 1fr); }
-            .two-col { grid-template-columns: 1fr; }
-            .projects-grid { grid-template-columns: 1fr; }
-            .scorecard { grid-template-columns: 1fr; }
+            .command-grid { grid-template-columns: repeat(2, 1fr); }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <h1>🎯 MISSION CONTROL</h1>
-                <div class="header-badges">
-                    <span class="badge badge-version">v4.2</span>
-                    <span class="badge badge-live"><span class="live-dot"></span> LIVE</span>
+    <div class="dashboard">
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div>
+                    <h1>🎯 MISSION CONTROL</h1>
+                    <div class="header-badges">
+                        <span class="badge badge-version">v5.0</span>
+                        <span class="badge badge-ultimate">ULTIMATE</span>
+                        <span class="badge badge-live"><span class="live-dot"></span> LIVE</span>
+                    </div>
                 </div>
-            </div>
-            <div class="weather-widget" id="weatherWidget">
-                <div class="weather-temp" id="weatherTemp">--°</div>
-                <div class="weather-condition" id="weatherCondition">Loading...</div>
-                <div class="weather-details" id="weatherDetails">--</div>
-                <div class="weather-location">📍 Chicago, IL</div>
-            </div>
-        </header>
+                <div class="weather-widget">
+                    <div>
+                        <div class="weather-temp" id="weatherTemp">--°</div>
+                    </div>
+                    <div>
+                        <div class="weather-info" id="weatherCondition">Loading...</div>
+                        <div class="weather-info" id="weatherDetails">📍 Chicago</div>
+                    </div>
+                </div>
+            </header>
 
-        <!-- Main Grid: Command Center + Sidebar -->
-        <div class="main-grid">
             <!-- Command Center -->
-            <div class="command-center">
-                <div class="stat-card green" onclick="scrollToSection('scorecard')">
+            <div class="command-grid">
+                <div class="stat-card green">
                     <div class="stat-icon">🏆</div>
                     <div class="stat-value">86%</div>
                     <div class="stat-label">Win Rate</div>
-                    <div class="stat-trend">↑ 19/22</div>
                 </div>
-                <div class="stat-card" onclick="scrollToSection('projects')">
+                <div class="stat-card">
                     <div class="stat-icon">🔥</div>
                     <div class="stat-value">3</div>
-                    <div class="stat-label">Active Projects</div>
+                    <div class="stat-label">Projects</div>
                 </div>
-                <div class="stat-card green" onclick="scrollToSection('health')">
+                <div class="stat-card green">
                     <div class="stat-icon">🚨</div>
                     <div class="stat-value">0</div>
                     <div class="stat-label">Blockers</div>
-                    <div class="stat-trend">✅ Clear</div>
                 </div>
-                <div class="stat-card" onclick="scrollToSection('calendar')">
+                <div class="stat-card">
+                    <div class="stat-icon">🤖</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Agents</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-icon">⚡</div>
                     <div class="stat-value">12</div>
-                    <div class="stat-label">Cron Jobs</div>
+                    <div class="stat-label">Crons</div>
                 </div>
             </div>
 
-            <!-- Daily Thought -->
-            <div class="daily-thought">
-                <div class="thought-header">💭 Daily Thought</div>
-                <div class="thought-text" id="dailyThought">
-                    "You cleared all blockers in one session. That's the power of batching — momentum compounds. Keep that energy for designs today."
+            <!-- Row 1: Smart Home + Security Cameras -->
+            <div class="grid-2">
+                <!-- Smart Home -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🏠 Smart Home</h3>
+                        <span class="card-badge">4 devices</span>
+                    </div>
+                    <div class="home-grid">
+                        <div class="home-device">
+                            <div class="device-info">
+                                <span class="device-icon">💡</span>
+                                <span>Living Room</span>
+                            </div>
+                            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                        </div>
+                        <div class="home-device">
+                            <div class="device-info">
+                                <span class="device-icon">💡</span>
+                                <span>Bedroom</span>
+                            </div>
+                            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+                        </div>
+                        <div class="home-device">
+                            <div class="device-info">
+                                <span class="device-icon">🔒</span>
+                                <span>Front Door</span>
+                            </div>
+                            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                        </div>
+                        <div class="home-device">
+                            <div class="device-info">
+                                <span class="device-icon">🌡️</span>
+                                <span>Thermostat</span>
+                            </div>
+                            <span style="font-size: 0.75rem; font-weight: 600;">72°F</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Cameras -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📹 Security Cameras</h3>
+                        <span class="card-badge">AI Monitoring</span>
+                    </div>
+                    <div class="camera-feed">
+                        <div class="camera-live"><span class="live-dot"></span> LIVE</div>
+                        <div class="camera-placeholder">
+                            <div style="font-size: 2rem;">📹</div>
+                            <div>Front Door Camera</div>
+                        </div>
+                    </div>
+                    <div class="camera-grid">
+                        <div class="camera-thumb">🚗</div>
+                        <div class="camera-thumb">🏡</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Quick Actions -->
-                <div class="quick-actions">
-                    <h3>⚡ Quick Actions</h3>
-                    <div class="action-grid">
-                        <button class="action-btn" onclick="triggerAction('email')">
-                            <span class="icon">📬</span> Check Email
-                        </button>
-                        <button class="action-btn" onclick="triggerAction('market')">
-                            <span class="icon">📊</span> Market Brief
-                        </button>
-                        <button class="action-btn" onclick="triggerAction('tasks')">
-                            <span class="icon">✅</span> Task Review
-                        </button>
-                        <button class="action-btn" onclick="triggerAction('security')">
-                            <span class="icon">🔒</span> Security Scan
-                        </button>
+            <!-- Row 2: Travel + Delivery + Stocks -->
+            <div class="grid-3">
+                <!-- Travel Status -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>✈️ Travel</h3>
+                    </div>
+                    <div class="flight-card">
+                        <div class="flight-header">
+                            <span class="flight-number">UA 1234</span>
+                            <span class="flight-status">On Time</span>
+                        </div>
+                        <div class="flight-route">
+                            <strong>ORD</strong>
+                            <span class="arrow">✈️ →</span>
+                            <strong>LAX</strong>
+                        </div>
+                        <div class="flight-details">
+                            <span>Feb 15 • 8:30 AM</span>
+                            <span>Gate B12</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Email Widget -->
-                <div class="email-widget">
-                    <div class="email-header">
-                        <h3>📬 AgentMail</h3>
-                        <span class="email-count" id="emailCount">0</span>
+                <!-- Delivery Tracker -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🍔 Delivery</h3>
                     </div>
-                    <div class="email-address">frankieg@agentmail.to</div>
+                    <div class="delivery-card">
+                        <div class="delivery-header">
+                            <span class="delivery-restaurant">Salmon Bagel Co.</span>
+                            <span class="delivery-eta">~12 min</span>
+                        </div>
+                        <div class="delivery-progress">
+                            <div class="delivery-step">
+                                <div class="step-icon done">✓</div>
+                                <span class="step-label">Ordered</span>
+                            </div>
+                            <div class="delivery-step">
+                                <div class="step-icon done">✓</div>
+                                <span class="step-label">Preparing</span>
+                            </div>
+                            <div class="delivery-step">
+                                <div class="step-icon active">🚗</div>
+                                <span class="step-label">On Way</span>
+                            </div>
+                            <div class="delivery-step">
+                                <div class="step-icon">📍</div>
+                                <span class="step-label">Delivered</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Activity Feed -->
-                <div class="activity-feed">
-                    <div class="feed-header">
-                        <h3>🔔 Recent Activity</h3>
+                <!-- Stock Watchlist -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📈 Watchlist</h3>
                     </div>
-                    <div id="activityFeed">
-                        <div class="feed-item">
-                            <div class="feed-icon">✅</div>
-                            <div class="feed-content">
-                                <div class="feed-title">Merch + Printful signed up</div>
-                                <div class="feed-time">2 min ago</div>
-                            </div>
+                    <div class="stock-item">
+                        <div>
+                            <div class="stock-symbol">NVDA</div>
+                            <div class="stock-name">NVIDIA</div>
                         </div>
-                        <div class="feed-item">
-                            <div class="feed-icon">📊</div>
-                            <div class="feed-content">
-                                <div class="feed-title">Dashboard upgraded to v4.2</div>
-                                <div class="feed-time">5 min ago</div>
-                            </div>
+                        <div class="stock-price">
+                            <div class="stock-value">$892.45</div>
+                            <div class="stock-change stock-up">+3.2%</div>
                         </div>
-                        <div class="feed-item">
-                            <div class="feed-icon">🎯</div>
-                            <div class="feed-content">
-                                <div class="feed-title">All blockers cleared</div>
-                                <div class="feed-time">8 min ago</div>
-                            </div>
+                    </div>
+                    <div class="stock-item">
+                        <div>
+                            <div class="stock-symbol">TSM</div>
+                            <div class="stock-name">Taiwan Semi</div>
                         </div>
-                        <div class="feed-item">
-                            <div class="feed-icon">📝</div>
-                            <div class="feed-content">
-                                <div class="feed-title">Memory updated</div>
-                                <div class="feed-time">10 min ago</div>
-                            </div>
+                        <div class="stock-price">
+                            <div class="stock-value">$178.23</div>
+                            <div class="stock-change stock-up">+1.8%</div>
                         </div>
-                        <div class="feed-item">
-                            <div class="feed-icon">🔍</div>
-                            <div class="feed-content">
-                                <div class="feed-title">YouTube research complete</div>
-                                <div class="feed-time">15 min ago</div>
-                            </div>
+                    </div>
+                    <div class="stock-item">
+                        <div>
+                            <div class="stock-symbol">BTC</div>
+                            <div class="stock-name">Bitcoin</div>
+                        </div>
+                        <div class="stock-price">
+                            <div class="stock-value">$97,450</div>
+                            <div class="stock-change stock-down">-0.4%</div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Row 3: Sub-Agents + Velocity -->
+            <div class="grid-2">
+                <!-- Sub-Agent Monitor -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🤖 Sub-Agents</h3>
+                        <span class="card-badge">3 active</span>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-avatar">📊</div>
+                        <div class="agent-info">
+                            <div class="agent-name">Market Analyst</div>
+                            <div class="agent-task">Compiling morning brief...</div>
+                        </div>
+                        <div class="agent-status running"></div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-avatar">📧</div>
+                        <div class="agent-info">
+                            <div class="agent-name">Email Monitor</div>
+                            <div class="agent-task">Watching inbox</div>
+                        </div>
+                        <div class="agent-status idle"></div>
+                    </div>
+                    <div class="agent-item">
+                        <div class="agent-avatar">🔍</div>
+                        <div class="agent-info">
+                            <div class="agent-name">Trend Scout</div>
+                            <div class="agent-task">Scanning X for trends...</div>
+                        </div>
+                        <div class="agent-status running"></div>
+                    </div>
+                </div>
+
+                <!-- Velocity Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📈 Velocity</h3>
+                        <span class="card-badge">+25% this week</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="velocityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Player -->
+            <div class="voice-player">
+                <div class="voice-header">
+                    <span>🎙️</span>
+                    <h3>Latest Voice Message from Frank</h3>
+                </div>
+                <div class="voice-message">
+                    <button class="play-btn" onclick="this.textContent = this.textContent === '▶️' ? '⏸️' : '▶️'">▶️</button>
+                    <div class="voice-waveform"></div>
+                    <span class="voice-duration">0:24</span>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                Mission Control v5.0 Ultimate — Smart Home • Cameras • Travel • Delivery • Stocks • Sub-Agents • Voice • Chat<br>
+                Auto-refreshes every 30s • <span id="lastUpdate">--</span>
             </div>
         </div>
 
-        <!-- Velocity + System Health -->
-        <section class="section">
-            <div class="two-col">
-                <!-- Velocity Chart -->
-                <div class="chart-container">
-                    <h3>📈 Velocity (Tasks Completed)</h3>
-                    <canvas id="velocityChart" height="150"></canvas>
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Chat Interface -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <span>💬</span>
+                    <h3>Chat with Frank</h3>
                 </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message">
+                        <div class="message-bubble bot">Good morning! All systems are go. Merch application is pending approval. What would you like to work on today?</div>
+                    </div>
+                    <div class="chat-message user">
+                        <div class="message-bubble user">Check my email</div>
+                    </div>
+                    <div class="chat-message">
+                        <div class="message-bubble bot">Checking AgentMail... You have 0 unread messages. Inbox is clear! 📭</div>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" placeholder="Message Frank..." id="chatInput" onkeypress="if(event.key==='Enter')sendMessage()">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
 
-                <!-- System Health -->
-                <div class="chart-container" id="health">
-                    <h3>🩺 System Health</h3>
-                    <div class="health-grid">
-                        <div class="health-item">
-                            <div class="health-name">
-                                <span class="health-dot green"></span>
-                                OpenClaw
-                            </div>
-                            <div class="health-status">Online</div>
-                        </div>
-                        <div class="health-item">
-                            <div class="health-name">
-                                <span class="health-dot green"></span>
-                                Telegram
-                            </div>
-                            <div class="health-status">Connected</div>
-                        </div>
-                        <div class="health-item">
-                            <div class="health-name">
-                                <span class="health-dot green"></span>
-                                Brave Search
-                            </div>
-                            <div class="health-status">Working</div>
-                        </div>
-                        <div class="health-item">
-                            <div class="health-name">
-                                <span class="health-dot green"></span>
-                                RSS Feeds
-                            </div>
-                            <div class="health-status">12 active</div>
-                        </div>
-                        <div class="health-item">
-                            <div class="health-name">
-                                <span class="health-dot green"></span>
-                                Cron Jobs
-                            </div>
-                            <div class="health-status">12 scheduled</div>
-                        </div>
-                        <div class="health-item">
-                            <div class="health-name">
-                                <span class="health-dot green"></span>
-                                n8n
-                            </div>
-                            <div class="health-status">Running</div>
-                        </div>
-                        <div class="health-item">
-                            <div class="health-name">
-                                <span class="health-dot yellow"></span>
-                                Twitter/X
-                            </div>
-                            <div class="health-status">No cookies</div>
-                        </div>
-                        <div class="health-item">
-                            <div class="health-name">
-                                <span class="health-dot green"></span>
-                                AgentMail
-                            </div>
-                            <div class="health-status">Active</div>
-                        </div>
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>⚡ Quick Actions</h3>
+                </div>
+                <div class="quick-grid">
+                    <button class="quick-btn"><span class="icon">📬</span> Check Email</button>
+                    <button class="quick-btn"><span class="icon">📊</span> Market Brief</button>
+                    <button class="quick-btn"><span class="icon">🔒</span> Security Scan</button>
+                    <button class="quick-btn"><span class="icon">🏠</span> Arm Home</button>
+                    <button class="quick-btn"><span class="icon">✈️</span> Check-in Flight</button>
+                    <button class="quick-btn"><span class="icon">🍔</span> Order Food</button>
+                </div>
+            </div>
+
+            <!-- Projects -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>🔥 Projects</h3>
+                </div>
+                <div class="project-mini">
+                    <div class="project-mini-header">
+                        <span class="project-mini-name">👕 Trend Tees</span>
+                        <span class="project-mini-status status-ready">Ready</span>
+                    </div>
+                    <div class="project-mini-stats">
+                        <span>Merch: ⏳</span>
+                        <span>Printful: ✅</span>
+                    </div>
+                </div>
+                <div class="project-mini">
+                    <div class="project-mini-header">
+                        <span class="project-mini-name">📈 Daily Alpha</span>
+                        <span class="project-mini-status status-ready">Active</span>
+                    </div>
+                    <div class="project-mini-stats">
+                        <span>8 crons</span>
+                        <span>12 RSS</span>
+                    </div>
+                </div>
+                <div class="project-mini">
+                    <div class="project-mini-header">
+                        <span class="project-mini-name">🎛️ Mission Control</span>
+                        <span class="project-mini-status status-ready">v5.0</span>
+                    </div>
+                    <div class="project-mini-stats">
+                        <span>Ultimate Edition</span>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <!-- Calendar Section -->
-        <section class="section" id="calendar">
-            <div class="two-col">
-                <div class="calendar-container">
-                    <div class="calendar-header">
-                        <h3>📅 February 2026</h3>
-                        <div class="calendar-nav">
-                            <button onclick="prevMonth()">←</button>
-                            <button onclick="nextMonth()">→</button>
-                        </div>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid"></div>
+            <!-- Activity Feed -->
+            <div class="card" style="flex: 1;">
+                <div class="card-header">
+                    <h3>🔔 Activity</h3>
                 </div>
-
-                <div class="calendar-container">
-                    <h3>📋 Today's Schedule</h3>
-                    <div class="schedule-list" id="todaySchedule"></div>
+                <div class="activity-item">
+                    <span class="activity-icon">✅</span>
+                    <span class="activity-text">Platforms signed up</span>
+                    <span class="activity-time">2m</span>
                 </div>
-            </div>
-        </section>
-
-        <!-- Projects -->
-        <section class="section" id="projects">
-            <div class="section-header">
-                <span>🔥</span>
-                <h2>Active Projects</h2>
-            </div>
-            <div class="projects-grid">
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-name">👕 Trend Tees</div>
-                        <div class="project-health" style="background: rgba(16,185,129,0.15); color: var(--accent-green);">Ready</div>
-                    </div>
-                    <div class="project-stats">
-                        <div class="project-stat">
-                            <div class="project-stat-label">Merch</div>
-                            <div class="project-stat-value" style="color: var(--accent-yellow);">⏳ Pending</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">Printful</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅ Ready</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">Revenue</div>
-                            <div class="project-stat-value">$0</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">Designs</div>
-                            <div class="project-stat-value">0</div>
-                        </div>
-                    </div>
+                <div class="activity-item">
+                    <span class="activity-icon">🚀</span>
+                    <span class="activity-text">Dashboard v5.0 deployed</span>
+                    <span class="activity-time">5m</span>
                 </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-name">📈 Daily Alpha</div>
-                        <div class="project-health" style="background: rgba(16,185,129,0.15); color: var(--accent-green);">Active</div>
-                    </div>
-                    <div class="project-stats">
-                        <div class="project-stat">
-                            <div class="project-stat-label">Brave API</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">RSS</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">12 feeds</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">Crons</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">8 active</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">Editions</div>
-                            <div class="project-stat-value">0</div>
-                        </div>
-                    </div>
+                <div class="activity-item">
+                    <span class="activity-icon">🔍</span>
+                    <span class="activity-text">YouTube research done</span>
+                    <span class="activity-time">8m</span>
                 </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-name">🎛️ Mission Control</div>
-                        <div class="project-health" style="background: rgba(16,185,129,0.15); color: var(--accent-green);">v4.2</div>
-                    </div>
-                    <div class="project-stats">
-                        <div class="project-stat">
-                            <div class="project-stat-label">Live Data</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">Weather</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">Velocity</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
-                        </div>
-                        <div class="project-stat">
-                            <div class="project-stat-label">Actions</div>
-                            <div class="project-stat-value" style="color: var(--accent-green);">✅</div>
-                        </div>
-                    </div>
+                <div class="activity-item">
+                    <span class="activity-icon">📝</span>
+                    <span class="activity-text">Memory updated</span>
+                    <span class="activity-time">12m</span>
+                </div>
+                <div class="activity-item">
+                    <span class="activity-icon">🎯</span>
+                    <span class="activity-text">All blockers cleared</span>
+                    <span class="activity-time">15m</span>
                 </div>
             </div>
-        </section>
-
-        <!-- Scorecard -->
-        <section class="section" id="scorecard">
-            <div class="section-header">
-                <span>🏆</span>
-                <h2>Win/Loss Scorecard — Week 1</h2>
-            </div>
-            <div class="scorecard">
-                <div class="score-column wins-column">
-                    <h3>✅ Wins (19)</h3>
-                    <div class="score-item">✓ Frank online & configured</div>
-                    <div class="score-item">✓ Telegram connected</div>
-                    <div class="score-item">✓ Trend Tees defined</div>
-                    <div class="score-item">✓ POD research complete</div>
-                    <div class="score-item">✓ Dashboard deployed</div>
-                    <div class="score-item">✓ Daily Alpha specced</div>
-                    <div class="score-item">✓ Tools installed</div>
-                    <div class="score-item">✓ Security hardened</div>
-                    <div class="score-item">✓ n8n + Codex CLI</div>
-                    <div class="score-item">✓ Merch by Amazon ✨</div>
-                    <div class="score-item">✓ Printful signup ✨</div>
-                    <div class="score-item">✓ Live dashboard v4.2 ✨</div>
-                </div>
-                <div class="score-column losses-column">
-                    <h3>❌ Losses (3)</h3>
-                    <div class="score-item">✗ Google account locked</div>
-                    <div class="score-item">✗ Bird CLI not auth'd</div>
-                    <div class="score-item">✗ Initial Merch delay</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <p>Mission Control v4.2 — Weather • Velocity • Activity Feed • Quick Actions • System Health</p>
-            <p>Auto-refreshes every 30s • Last update: <span id="lastRefresh">—</span></p>
-        </footer>
+        </div>
     </div>
 
     <script>
-        // Cron jobs
-        const cronJobs = [
-            { name: "Update Check", time: "06:00", schedule: "daily" },
-            { name: "Topic Review", time: "06:00", schedule: "daily" },
-            { name: "Market Brief", time: "07:00", schedule: "weekday" },
-            { name: "Email AM", time: "08:00", schedule: "daily" },
-            { name: "Security", time: "08:00", schedule: "weekly-mon" },
-            { name: "Memory", time: "08:00", schedule: "weekly-sun" },
-            { name: "Task AM", time: "09:00", schedule: "daily" },
-            { name: "Email Mid", time: "12:00", schedule: "daily" },
-            { name: "Email PM", time: "16:00", schedule: "daily" },
-            { name: "Task PM", time: "17:00", schedule: "daily" },
-            { name: "Skills Scan", time: "18:00", schedule: "weekly-sun" },
-            { name: "Email Eve", time: "20:00", schedule: "daily" }
-        ];
-
-        let viewMonth = 1; // Feb
-        let viewYear = 2026;
-
         // Weather
         async function fetchWeather() {
             try {
-                const resp = await fetch('https://wttr.in/Chicago?format=%C|%t|%h|%w');
+                const resp = await fetch('https://wttr.in/Chicago?format=%C|%t|%w');
                 const text = await resp.text();
-                const [condition, temp, humidity, wind] = text.split('|');
-                document.getElementById('weatherCondition').textContent = condition.trim();
+                const [condition, temp, wind] = text.split('|');
                 document.getElementById('weatherTemp').textContent = temp.trim();
-                document.getElementById('weatherDetails').textContent = `💧 ${humidity.trim()} • 💨 ${wind.trim()}`;
-            } catch (e) {
-                document.getElementById('weatherCondition').textContent = 'Unable to load';
-            }
+                document.getElementById('weatherCondition').textContent = condition.trim();
+                document.getElementById('weatherDetails').textContent = '💨 ' + wind.trim() + ' • 📍 Chicago';
+            } catch (e) {}
         }
 
         // Velocity Chart
-        function initVelocityChart() {
+        function initChart() {
             const ctx = document.getElementById('velocityChart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Feb 2', 'Feb 3', 'Feb 4', 'Feb 5', 'Feb 6', 'Feb 7'],
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                     datasets: [{
-                        label: 'Tasks Completed',
-                        data: [7, 4, 3, 2, 5, 4],
+                        data: [5, 7, 4, 8, 6, 9, 7],
                         borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#3b82f6',
-                        pointRadius: 4
+                        pointRadius: 3
                     }]
                 },
                 options: {
@@ -981,125 +1083,47 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { 
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: 'rgba(255,255,255,0.5)' }
-                        },
-                        x: {
+                        y: { display: false },
+                        x: { 
                             grid: { display: false },
-                            ticks: { color: 'rgba(255,255,255,0.5)' }
+                            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 9 } }
                         }
                     }
                 }
             });
         }
 
-        // Calendar
-        function getJobsForDay(date) {
-            const dow = date.getDay();
-            return cronJobs.filter(job => {
-                if (job.schedule === 'daily') return true;
-                if (job.schedule === 'weekday' && dow >= 1 && dow <= 5) return true;
-                if (job.schedule === 'weekly-sun' && dow === 0) return true;
-                if (job.schedule === 'weekly-mon' && dow === 1) return true;
-                return false;
-            }).sort((a, b) => a.time.localeCompare(b.time));
-        }
-
-        function renderCalendar() {
-            const grid = document.getElementById('calendarGrid');
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            let html = days.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+        // Chat
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
             
-            const firstDay = new Date(viewYear, viewMonth, 1);
-            const lastDay = new Date(viewYear, viewMonth + 1, 0);
-            const startPad = firstDay.getDay();
-            const prevLast = new Date(viewYear, viewMonth, 0).getDate();
+            const container = document.getElementById('chatMessages');
+            container.innerHTML += `<div class="chat-message user"><div class="message-bubble user">${msg}</div></div>`;
+            input.value = '';
             
-            for (let i = startPad - 1; i >= 0; i--) {
-                html += `<div class="calendar-day other-month"><div class="calendar-day-number">${prevLast - i}</div></div>`;
-            }
+            setTimeout(() => {
+                container.innerHTML += `<div class="chat-message"><div class="message-bubble bot">Got it! I'll work on that. 🚀</div></div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 500);
             
-            const today = new Date();
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                const date = new Date(viewYear, viewMonth, day);
-                const isToday = date.toDateString() === today.toDateString();
-                const jobs = getJobsForDay(date);
-                
-                let eventsHtml = '<div class="calendar-events">';
-                jobs.slice(0, 2).forEach(job => {
-                    let cls = job.schedule === 'daily' ? 'event-daily' : 
-                              job.schedule === 'weekday' ? 'event-weekday' : 'event-weekly';
-                    eventsHtml += `<div class="calendar-event ${cls}">${job.time}</div>`;
-                });
-                if (jobs.length > 2) eventsHtml += `<div class="calendar-event" style="background:rgba(255,255,255,0.1)">+${jobs.length-2}</div>`;
-                eventsHtml += '</div>';
-                
-                html += `<div class="calendar-day ${isToday ? 'today' : ''}">
-                    <div class="calendar-day-number">${day}</div>${eventsHtml}</div>`;
-            }
-            
-            grid.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
         }
 
-        function renderTodaySchedule() {
-            const container = document.getElementById('todaySchedule');
-            const jobs = getJobsForDay(new Date());
-            const hour = new Date().getHours();
-            
-            container.innerHTML = jobs.map(job => {
-                const jobHour = parseInt(job.time.split(':')[0]);
-                const done = jobHour < hour;
-                return `<div class="schedule-item">
-                    <div class="schedule-time">${job.time}</div>
-                    <div class="schedule-name">${job.name}</div>
-                    <div class="schedule-status ${done ? 'status-done' : 'status-pending'}">${done ? '✓' : '⏳'}</div>
-                </div>`;
-            }).join('');
+        // Timestamp
+        function updateTime() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('en-US', {
+                timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit'
+            }) + ' CST';
         }
-
-        function prevMonth() { viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } renderCalendar(); }
-        function nextMonth() { viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } renderCalendar(); }
-
-        function scrollToSection(id) {
-            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function triggerAction(action) {
-            alert(`🚀 Triggering: ${action}\n\nThis would send a command to Frank via the API.`);
-        }
-
-        function updateTimestamp() {
-            document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString('en-US', {
-                timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', second: '2-digit'
-            });
-        }
-
-        // Daily thoughts
-        const thoughts = [
-            "You cleared all blockers in one session. That's the power of batching — momentum compounds.",
-            "Printful is ready now. While waiting on Merch approval, you could have designs live today.",
-            "86% win rate in week one. Keep stacking small wins — they compound into big results.",
-            "The best dashboard is one that drives action, not just displays status. Every tile should lead somewhere.",
-            "Your infrastructure is solid. Now it's time to execute on the business side."
-        ];
-        document.getElementById('dailyThought').textContent = `"${thoughts[Math.floor(Math.random() * thoughts.length)]}"`;
 
         // Init
         fetchWeather();
-        initVelocityChart();
-        renderCalendar();
-        renderTodaySchedule();
-        updateTimestamp();
-
-        // Auto-refresh
-        setInterval(() => {
-            renderTodaySchedule();
-            updateTimestamp();
-        }, 30000);
-
-        setInterval(fetchWeather, 600000); // Weather every 10 min
+        initChart();
+        updateTime();
+        setInterval(updateTime, 30000);
+        setInterval(fetchWeather, 600000);
     </script>
 </body>
 </html>
